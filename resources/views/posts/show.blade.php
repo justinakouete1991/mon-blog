@@ -58,8 +58,6 @@
 
                     {{-- Likes et Partage --}}
                     <div class="flex items-center justify-between mt-10 pt-8 border-t border-gray-100">
-
-                        {{-- Bouton Like --}}
                         @auth
                             <form method="POST" action="{{ route('posts.like', $post) }}">
                                 @csrf
@@ -74,7 +72,6 @@
                             </span>
                         @endauth
 
-                        {{-- Partage --}}
                         <div class="flex items-center gap-3">
                             <span class="text-xs text-gray-400 uppercase tracking-wider">Partager</span>
                             <a href="https://wa.me/?text={{ urlencode($post->title . ' ' . url()->current()) }}"
@@ -100,82 +97,7 @@
 
                 @forelse($post->comments as $comment)
                     <div class="mb-8">
-                        <div class="flex items-start gap-4">
-                            <div class="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-sm font-bold shrink-0">
-                                {{ strtoupper(substr($comment->user->name, 0, 1)) }}
-                            </div>
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between mb-1">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-sm font-semibold text-gray-900">{{ $comment->user->name }}</span>
-                                        <span class="text-xs text-gray-400">{{ $comment->created_at->diffForHumans() }}</span>
-                                    </div>
-                                    @auth
-                                        @if(auth()->user()->isAdmin() || auth()->id() == $comment->user_id)
-                                            <form method="POST" action="{{ route('comments.destroy', $comment) }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-xs text-red-400 hover:text-red-600">
-                                                    Supprimer
-                                                </button>
-                                            </form>
-                                        @endif
-                                    @endauth
-                                </div>
-                                <p class="text-gray-700 text-sm leading-relaxed">{{ $comment->body }}</p>
-
-                                {{-- Réponses --}}
-                                @foreach($comment->replies as $reply)
-                                    <div class="mt-4 ml-4 pl-4 border-l-2 border-gray-100">
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold shrink-0">
-                                                {{ strtoupper(substr($reply->user->name, 0, 1)) }}
-                                            </div>
-                                            <div class="flex-1">
-                                                <div class="flex items-center justify-between mb-1">
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="text-sm font-semibold text-gray-900">{{ $reply->user->name }}</span>
-                                                        <span class="text-xs text-gray-400">{{ $reply->created_at->diffForHumans() }}</span>
-                                                    </div>
-                                                    @auth
-                                                        @if(auth()->user()->isAdmin() || auth()->id() == $reply->user_id)
-                                                            <form method="POST" action="{{ route('comments.destroy', $reply) }}">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="text-xs text-red-400 hover:text-red-600">
-                                                                    Supprimer
-                                                                </button>
-                                                            </form>
-                                                        @endif
-                                                    @endauth
-                                                </div>
-                                                <p class="text-gray-700 text-sm leading-relaxed">{{ $reply->body }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-
-                                {{-- Formulaire répondre --}}
-                                @auth
-                                    <div class="mt-4">
-                                        <form method="POST" action="{{ route('comments.store', $post) }}">
-                                            @csrf
-                                            <input type="hidden" name="post_id" value="{{ $post->id }}">
-                                            <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-                                            <div class="flex gap-2">
-                                                <input type="text" name="body" placeholder="Répondre à {{ $comment->user->name }}..."
-                                                    class="flex-1 border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300"
-                                                    required>
-                                                <button type="submit"
-                                                    class="bg-gray-900 text-white px-4 py-2 rounded-full text-sm hover:bg-gray-700 transition">
-                                                    Répondre
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                @endauth
-                            </div>
-                        </div>
+                        @include('posts._comment', ['comment' => $comment, 'post' => $post])
                     </div>
                 @empty
                     <p class="text-gray-400 text-sm text-center py-6">Soyez le premier à commenter !</p>
@@ -215,4 +137,13 @@
 
         </div>
     </div>
+
+    {{-- JavaScript pour afficher/cacher les formulaires de réponse --}}
+    <script>
+        function toggleReply(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+    </script>
+
 </x-app-layout>

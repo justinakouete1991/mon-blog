@@ -25,13 +25,13 @@ class Comment extends Model
         return $this->belongsTo(User::class);
     }
 
-    // Un commentaire peut avoir des réponses
+    // Les réponses directes à ce commentaire
     public function replies()
     {
-        return $this->hasMany(Comment::class, 'parent_id')->latest();
+        return $this->hasMany(Comment::class, 'parent_id')->with(['user', 'replies'])->latest();
     }
 
-    // Un commentaire peut appartenir à un commentaire parent
+    // Le commentaire parent
     public function parent()
     {
         return $this->belongsTo(Comment::class, 'parent_id');
